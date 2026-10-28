@@ -1,33 +1,34 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"errors"
-	"github.com/fwoffo-sys/pokedex/internal"
+
+	"github.com/fwoffo-sys/pokedex/internal/pokeapi"
 )
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(cfg *config) error
+	callback    func(cfg *config, parameters []string) error
 }
 
-func commandExit(cfg *config) error {
+func commandExit(cfg *config, parameters []string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
-func commandHelp(cfg *config) error {
-	fmt.Println("Welcome to the Pokedex!\nUsage:\n")
+func commandHelp(cfg *config, parameters []string) error {
+	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
 	for _, command := range cfg.commandRegistry {
 		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
 	return nil
 }
 
-func commandMap(cfg *config) error {
-	locationPage, err := internal.GetPokeLocations(cfg.next)
+func commandMap(cfg *config, parameters []string) error {
+	locationPage, err := pokeapi.GetPokeLocations(cfg.next, cfg.cache)
 	if err != nil {
 		return err
 	}
@@ -47,11 +48,11 @@ func commandMap(cfg *config) error {
 	return err
 }
 
-func commandMapb(cfg *config) error {
+func commandMapb(cfg *config, parameters []string) error {
 	if cfg.previous == "" {
 		return errors.New("you're on the first page")
 	}
-	locationPage, err := internal.GetPokeLocations(cfg.previous)
+	locationPage, err := pokeapi.GetPokeLocations(cfg.previous, cfg.cache)
 	if err != nil {
 		return err
 	}
@@ -65,4 +66,27 @@ func commandMapb(cfg *config) error {
 	PrintLocations(locationPage.Results)
 
 	return err
+}
+
+func commandExplore(cfg *config, parameters []string) error {
+	if len(parameters) == 0 {
+		return errors.New("No location specified")
+	}
+	locationName := parameters[0]
+	locationURL := "https://pokeapi.co/api/v2/location-area/" + locationName + "/"
+	location, err := pokeapi.GetLocationPokemon(locationURL, cfg.cache)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Exploring %s...\n", locationName)
+	if len(location.PokemonEncounters) == 0 {
+		fmt.Println("No Pokemon encounters found in this location.")
+		return nil
+	}
+	fmt.Println("Found Pokemon:")
+	for _, encounter := range location.PokemonEncounters {
+		fmt.Printf("- %s\n", encounter.Pokemon.Name)
+	}
+	return nil
 }

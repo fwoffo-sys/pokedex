@@ -1,23 +1,24 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"bufio"
+	"time"
 )
 
 func main() {
-	config := BuildConfig()
+	config := BuildConfig(5 * time.Second)
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
-		userCommand := cleanInput(scanner.Text())[0]
-		command, ok := config.commandRegistry[userCommand]
-		if !ok{
+		userCommand := cleanInput(scanner.Text())
+		command, ok := config.commandRegistry[userCommand[0]]
+		if !ok {
 			fmt.Println("Command not recognised (hint: use 'help')")
 		} else {
-			err := command.callback(config)
+			err := command.callback(config, userCommand[1:])
 			if err != nil {
 				fmt.Println(err)
 			}
