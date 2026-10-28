@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 
 	"github.com/fwoffo-sys/pokedex/internal/pokeapi"
@@ -88,5 +89,26 @@ func commandExplore(cfg *config, parameters []string) error {
 	for _, encounter := range location.PokemonEncounters {
 		fmt.Printf("- %s\n", encounter.Pokemon.Name)
 	}
+	return nil
+}
+
+func commandCatch(cfg *config, parameters []string) error {
+	if len(parameters) == 0 {
+		return errors.New("No Pokemon specified")
+	}
+	pokemonName := parameters[0]
+	pokemon, err := pokeapi.GetPokemon(pokemonName, cfg.cache)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	catchNumber := rand.Intn(750) + 1
+	if catchNumber >= pokemon.BaseExperience {
+		fmt.Printf("%s was caught!\n", pokemonName)
+		cfg.pokedex[pokemonName] = pokemon
+		return nil
+	}
+	fmt.Printf("%s escaped!\n", pokemonName)
 	return nil
 }

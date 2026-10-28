@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/fwoffo-sys/pokedex/internal/pokeapi"
 	"github.com/fwoffo-sys/pokedex/internal/pokecache"
 )
 
@@ -11,6 +12,7 @@ type config struct {
 	next            string
 	previous        string
 	cache           *pokecache.Cache
+	pokedex         map[string]*pokeapi.PokemonData
 }
 
 const startLocation = "https://pokeapi.co/api/v2/location-area/"
@@ -41,6 +43,11 @@ func BuildCommandRegistry(registry map[string]cliCommand) {
 		description: "Explore a specific location to find Pokemon encounters",
 		callback:    commandExplore,
 	}
+	registry["catch"] = cliCommand{
+		name:        "catch",
+		description: "Catch a specific Pokemon",
+		callback:    commandCatch,
+	}
 }
 
 func BuildConfig(interval time.Duration) *config {
@@ -49,6 +56,7 @@ func BuildConfig(interval time.Duration) *config {
 		next:            startLocation,
 		previous:        "",
 		cache:           pokecache.NewCache(interval),
+		pokedex:         map[string]*pokeapi.PokemonData{},
 	}
 	BuildCommandRegistry(cfg.commandRegistry)
 	return cfg
