@@ -48,6 +48,16 @@ func BuildCommandRegistry(registry map[string]cliCommand) {
 		description: "Catch a specific Pokemon",
 		callback:    commandCatch,
 	}
+	registry["inspect"] = cliCommand{
+		name:        "inspect",
+		description: "Inspect a specific Pokemon in your Pokedex",
+		callback:    commandInspect,
+	}
+	registry["pokedex"] = cliCommand{
+		name:        "pokedex",
+		description: "Displays all caught Pokemon recorded in your Pokedex",
+		callback:    commandPokedex,
+	}
 }
 
 func BuildConfig(interval time.Duration) *config {
